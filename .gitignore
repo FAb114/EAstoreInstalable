@@ -1,0 +1,29 @@
+# Node
+node_modules/
+package-lock.json
+
+# Electron build output
+dist/
+build/
+
+# Logs y temporales
+*.log
+*.tmp
+
+# Puppeteer chromium
+**/puppeteer*/.local-chromium/
+
+# Archivos grandes
+*.exe
+*.dll
+*.db
+*.sqlite
+
+# Sistema
+.DS_Store
+Thumbs.db
+.env
+
+# IDEs
+.vscode/
+.idea/

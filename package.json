@@ -1,0 +1,120 @@
+{
+    "name": "eastore-facturacion",
+    "productName": "EAstore Facturador",
+    "version": "1.0.0",
+    "description": "Sistema de facturación para EAstore - Venta de electrónicos",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "dev": "electron . --dev",
+        "test": "jest",
+        "build": "electron-builder",
+        "build:win": "electron-builder --win",
+        "build:mac": "electron-builder --mac",
+        "build:linux": "electron-builder --linux",
+        "rebuild": "electron-rebuild",
+        "postinstall": "npm run rebuild"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/eastore/facturacion.git"
+    },
+    "keywords": [
+        "facturacion",
+        "afip",
+        "mercadopago",
+        "argentina",
+        "electronicos",
+        "punto-de-venta"
+    ],
+    "author": "EAstore",
+    "license": "UNLICENSED",
+    "private": true,
+    "dependencies": {
+        "afip-apis": "^0.5.5",
+        "axios": "^1.8.4",
+        "better-sqlite3": "^11.9.1",
+        "cors": "^2.8.5",
+        "electron-log": "^5.0.0",
+        "electron-store": "^8.1.0",
+        "electron-updater": "^6.1.1",
+        "express": "^5.1.0",
+        "is-online": "^10.0.0",
+        "mercadopago": "^1.5.17",
+        "moment": "^2.29.4",
+        "mongoose": "^8.13.2",
+        "node-thermal-printer": "^4.2.0",
+        "nodemailer": "^6.10.0",
+        "pdf-lib": "^1.17.1",
+        "pdfkit": "^0.13.0",
+        "qrcode": "^1.5.4",
+        "react": "^19.1.0",
+        "react-dom": "^19.1.0",
+        "sequelize": "^6.37.7",
+        "uuid": "^9.0.1",
+        "validator": "^13.11.0",
+        "whatsapp-web.js": "^1.27.0",
+        "winston": "^3.11.0"
+    },
+    "devDependencies": {
+        "cross-env": "^7.0.3",
+        "electron": "^25.9.8",
+        "electron-builder": "^24.13.3",
+        "electron-rebuild": "^3.2.9",
+        "jest": "^29.7.0",
+        "supertest": "^6.3.3"
+    },
+    "build": {
+        "appId": "com.eastore.facturacion",
+        "productName": "EAstore Facturador",
+        "directories": {
+            "output": "dist"
+        },
+        "files": [
+            "**/*",
+            "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+            "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+            "!**/node_modules/*.d.ts",
+            "!**/node_modules/.bin",
+            "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+            "!.editorconfig",
+            "!**/._*",
+            "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+            "!**/{.eslintrc,.eslintignore,.prettierrc}",
+            "!**/{*.md,*.yml,*.yaml}"
+        ],
+        "win": {
+            "target": [
+                "nsis"
+            ],
+            "icon": "assent/icon.ico"
+        },
+        "mac": {
+            "target": [
+                "dmg"
+            ],
+            "icon": "assent/icon.icns"
+        },
+        "linux": {
+            "target": [
+                "AppImage",
+                "deb"
+            ],
+            "icon": "assent/icon.png",
+            "category": "Office"
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true,
+            "createDesktopShortcut": true
+        }
+    },
+    "directories": {
+        "doc": "docs",
+        "test": "tests"
+    },
+    "bugs": {
+        "url": "https://github.com/eastore/facturacion/issues"
+    },
+    "homepage": "https://github.com/eastore/facturacion#readme"
+}

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestión de Productos</title>
+</head>
+<body>
+  <h1>Alta de Producto</h1>
+
+  <form id="formAltaIndividual">
+    <label for="ean">Código de Barras (EAN):</label>
+    <input type="text" id="ean" name="ean" required /><br/>
+
+    <label for="nombre">Nombre:</label>
+    <input type="text" id="nombre" name="nombre" required /><br/>
+
+    <label for="detalle">Descripción:</label>
+    <input type="text" id="detalle" name="detalle" /><br/>
+
+    <label for="categoria">Categoría:</label>
+    <input type="text" id="categoria" name="categoria" /><br/>
+
+    <label for="precioCompra">Precio de Compra:</label>
+    <input type="number" step="0.01" id="precioCompra" name="precioCompra" required /><br/>
+
+    <label for="porcentajeGanancia">Porcentaje de Ganancia:</label>
+    <input type="number" step="0.01" id="porcentajeGanancia" name="porcentajeGanancia" value="20" /><br/>
+
+    <label for="precioVenta">Precio de Venta:</label>
+    <input type="number" step="0.01" id="precioVenta" name="precioVenta" readonly /><br/>
+
+    <label for="stock">Stock Inicial:</label>
+    <input type="number" id="stock" name="stock" /><br/>
+
+    <button type="submit">Guardar Producto</button>
+  </form>
+
+  <table id="tablaProductos">
+    <thead>
+      <tr>
+        <th>EAN</th>
+        <th>Nombre</th>
+        <th>Precio Venta</th>
+        <th>Stock</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    function agregarProductoALaTabla(producto) {
+      const tabla = document.getElementById('tablaProductos').querySelector('tbody');
+      const fila = document.createElement('tr');
+
+      fila.innerHTML = `
+        <td>${producto.codigo || producto.ean}</td>
+        <td>${producto.nombre}</td>
+        <td>$${producto.precio || producto.precioVenta}</td>
+        <td>${producto.stock}</td>
+      `;
+
+      tabla.appendChild(fila);
+    }
+
+    function calcularPrecioVenta() {
+      const costo = parseFloat(document.getElementById('precioCompra').value);
+      const ganancia = parseFloat(document.getElementById('porcentajeGanancia').value);
+
+      if (!isNaN(costo) && !isNaN(ganancia)) {
+        const precioVenta = costo + (costo * (ganancia / 100));
+        document.getElementById('precioVenta').value = precioVenta.toFixed(2);
+      }
+    }
+
+    document.getElementById('precioCompra').addEventListener('input', calcularPrecioVenta);
+    document.getElementById('porcentajeGanancia').addEventListener('input', calcularPrecioVenta);
+
+    // Calcular precio venta al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+      calcularPrecioVenta();
+    });
+
+    // Alta real del producto con conexión al backend
+    document.getElementById('formAltaIndividual').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      // Validaciones
+      const codigo = document.getElementById('ean').value.trim();
+      const nombre = document.getElementById('nombre').value.trim();
+      const precioCompra = parseFloat(document.getElementById('precioCompra').value);
+      const porcentajeGanancia = parseFloat(document.getElementById('porcentajeGanancia').value);
+      const precioVenta = parseFloat(document.getElementById('precioVenta').value);
+      
+      // Validar campos obligatorios
+      if (!codigo) {
+        alert('El código de barras (EAN) es obligatorio');
+        document.getElementById('ean').focus();
+        return;
+      }
+      
+      if (!nombre) {
+        alert('El nombre del producto es obligatorio');
+        document.getElementById('nombre').focus();
+        return;
+      }
+      
+      if (isNaN(precioCompra) || precioCompra <= 0) {
+        alert('El precio de compra debe ser un número mayor a 0');
+        document.getElementById('precioCompra').focus();
+        return;
+      }
+      
+      if (isNaN(porcentajeGanancia)) {
+        alert('El porcentaje de ganancia debe ser un número');
+        document.getElementById('porcentajeGanancia').focus();
+        return;
+      }
+      
+      if (isNaN(precioVenta) || precioVenta <= 0) {
+        alert('El precio de venta debe ser un número mayor a 0');
+        return;
+      }
+
+      const producto = {
+        codigo: codigo,
+        nombre: nombre,
+        descripcion: document.getElementById('detalle').value.trim(),
+        categoria: document.getElementById('categoria').value.trim(),
+        costo: precioCompra,
+        precio: precioVenta,
+        porcentajeGanancia: porcentajeGanancia,
+        stock: parseInt(document.getElementById('stock').value) || 0,
+        stockMinimo: 5,
+        marca: '',
+        proveedor: '',
+        activo: true,
+        impuesto: {
+          tipo: 'IVA',
+          porcentaje: 21
+        },
+        imagenes: []
+      };
+
+      try {
+        const res = await fetch('http://localhost:3000/api/productos', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(producto)
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          agregarProductoALaTabla(data.producto || producto);
+          this.reset();
+          document.getElementById('ean').focus();
+          // Recalcular el precio de venta después de resetear el formulario
+          setTimeout(calcularPrecioVenta, 0);
+        } else {
+          const error = await res.json();
+          alert('Error al guardar el producto: ' + (error.error || error.message || 'Error desconocido'));
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Error al conectar con el servidor.');
+      }
+    });
+  </script>
+</body>
+</html>

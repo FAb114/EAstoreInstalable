@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <link rel="stylesheet" href="css/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Facturador</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+    .total-box {
+      background-color: #e0f7fa;
+      padding: 10px;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    .btn-custom {
+      border: none;
+      font-size: 1.1rem;
+      padding: 10px 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    /* Efecto hover para la lista de productos */
+    #listaProductos li:hover {
+      background-color: #ffe0b2;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-4">
+    <h2 class="mb-4">Nueva Factura</h2>
+    <!-- Información de la factura y datos del cliente -->
+    <div class="row g-3 mb-3">
+      <div class="col-md-2">
+        <label class="form-label">N° Factura</label>
+        <input type="text" class="form-control" id="numeroFactura" value="0001-00000001" readonly>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Tipo de Factura</label>
+        <select class="form-select" id="tipoFactura">
+          <option value="A">Factura A</option>
+          <option value="B">Factura B</option>
+          <option value="C">Factura C</option>
+          <option value="X">Factura X</option>
+          <option value="Presupuesto">Presupuesto</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Cliente</label>
+        <input type="text" class="form-control" id="cliente" value="Consumidor Final">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Medio de Pago</label>
+        <div id="mediosPago">
+          <button type="button" class="btn btn-outline-secondary btn-sm me-1 btn-custom" onclick="abrirModalPago('Efectivo')">Efectivo</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm me-1 btn-custom" onclick="abrirModalPago('Transferencia')">Transferencia</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm me-1 btn-custom" onclick="abrirModalPago('Tarjeta')">Tarjeta</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm btn-custom" onclick="abrirModalPago('QR')">QR</button>
+        </div>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button class="btn btn-outline-primary w-100 btn-custom" id="btnARCA" onclick="abrirModalARCA()">
+          <img src="https://www.afip.gob.ar/images/logoARCA.png" alt="ARCA" style="height: 20px; margin-right: 5px;"> ARCA
+        </button>
+      </div>
+    </div>
+
+    <!-- Ingreso de productos -->
+    <div class="row g-3 mb-3">
+      <div class="col-md-4">
+        <label class="form-label">Producto</label>
+        <input type="text" class="form-control" id="producto" placeholder="Nombre o código (F1 para buscar)" onkeydown="if(event.key==='F1'){ event.preventDefault(); abrirModalBusquedaProducto(); } else {navegarEnter(event, 'precio'); }">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Precio</label>
+        <input type="number" class="form-control" id="precio" onkeydown="navegarEnter(event, 'cantidad')">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Cantidad</label>
+        <input type="number" class="form-control" id="cantidad" onkeydown="navegarEnter(event, 'descuento')">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Desc. (%)</label>
+        <input type="number" class="form-control" id="descuento" onkeydown="navegarEnter(event, 'iva')">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">IVA (%)</label>
+        <input type="number" class="form-control" id="iva" onkeydown="manejarEnterFinal(event)">
+      </div>
+    </div>
+    <div class="mb-3">
+      <button class="btn btn-success btn-custom" id="agregarBtn" onclick="agregarProducto()">Agregar Producto</button>
+    </div>
+
+    <ul class="list-group mb-3" id="listaProductos"></ul>
+
+    <div class="text-end total-box">
+      <h5>Subtotal: $<span id="subtotal">0.00</span></h5>
+      <h5>Total IVA: $<span id="totalIVA">0.00</span></h5>
+      <h4>Total General: $<span id="totalGeneral">0.00</span></h4>
+      <h5>Total Pagado: $<span id="totalPagado">0.00</span></h5>
+      <button class="btn btn-outline-secondary btn-lg mt-2" id="emitirBtn" onclick="abrirModalImpresion()" disabled>Emitir Factura</button>
+    </div>
+  </div>
+
+  <!-- Modal de Pago Detallado -->
+  <div class="modal fade" id="modalPago" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="tituloModalPago">Ingrese el monto pagado</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p>Método: <strong id="metodoSeleccionado"></strong></p>
+          <p>Total a pagar: $<span id="totalModal">0.00</span></p>
+          <div class="input-group mb-3">
+            <span class="input-group-text">Monto</span>
+            <input type="number" id="montoPagoInput" class="form-control" placeholder="Ingrese monto" onkeydown="confirmarPagoEnter(event)">
+          </div>
+          <div id="listaPagos" class="list-group"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary btn-lg" onclick="confirmarPago()">Confirmar</button>
+          <button class="btn btn-secondary btn-lg" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Búsqueda de Producto -->
+  <div class="modal fade" id="modalBusquedaProducto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Buscar Producto</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" class="form-control" id="busquedaProducto" placeholder="Ingrese nombre del producto" onkeyup="filtrarProductos()">
+          <ul class="list-group mt-2" id="resultadosBusqueda"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal ARCA -->
+  <div class="modal fade" id="modalARCA" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Conectando con ARCA</h5>
+          <button type="button" class="btn btn-primary" onclick="facturarARCA()">
+            <img src="assets/arca-logo.png" alt="ARCA" style="height:20px; margin-right:5px;"> Facturar ARCA
+          </button>
+                    
+        </div>
+        <div class="modal-body text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+          <p class="mt-3">Obteniendo número de factura...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Impresión -->
+  <div class="modal fade" id="modalImpresion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">¿Cómo desea emitir la factura?</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body text-center">
+          <p>Total pagado: $<span id="modalTotalPagado">0.00</span></p>
+          <p id="modalVuelto"></p>
+          <button class="btn btn-outline-primary btn-lg m-2" onclick="finalizarFactura('A4')">Factura (A4)</button>
+          <button class="btn btn-outline-dark btn-lg m-2" onclick="finalizarFactura('Ticket')">Ticket</button>
+          <button class="btn btn-outline-success btn-lg m-2" onclick="finalizarFactura('WhatsApp')">WhatsApp</button>
+          <button class="btn btn-outline-info btn-lg m-2" onclick="finalizarFactura('Email')">Email</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Variables globales
+    let pagos = [];
+    let metodoActual = "";
+    let subtotal = 0;
+    let totalIVA = 0;
+    const productosBase = [
+      { nombre: "Mouse", precio: 2500 },
+      { nombre: "Teclado", precio: 4000 },
+      { nombre: "Monitor", precio: 95000 }
+    ];
+
+    // Navegación entre campos con Enter
+    function navegarEnter(event, siguienteId) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        const siguiente = document.getElementById(siguienteId);
+        if (siguiente) siguiente.focus();
+      }
+    }
+    function manejarEnterFinal(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        agregarProducto();
+      }
+    }
+
+    // Modal de búsqueda de producto (simulado)
+    function abrirModalBusquedaProducto() {
+      const modal = new bootstrap.Modal(document.getElementById('modalBusquedaProducto'));
+      modal.show();
+      document.getElementById('busquedaProducto').value = "";
+      document.getElementById('resultadosBusqueda').innerHTML = "";
+      document.getElementById('busquedaProducto').focus();
+    }
+    function filtrarProductos() {
+      const query = document.getElementById('busquedaProducto').value.toLowerCase();
+      const resultados = productosBase.filter(p => p.nombre.toLowerCase().includes(query));
+      const lista = document.getElementById('resultadosBusqueda');
+      lista.innerHTML = "";
+      resultados.forEach(p => {
+        const li = document.createElement('li');
+        li.className = "list-group-item";
+        li.style.cursor = "pointer";
+        li.style.backgroundColor = "#ffe0b2";
+        li.textContent = p.nombre;
+        li.onclick = () => { 
+          document.getElementById('producto').value = p.nombre;
+          document.getElementById('precio').value = p.precio;
+          const modalInstance = bootstrap.Modal.getInstance(document.getElementById('modalBusquedaProducto'));
+          modalInstance.hide();
+          document.getElementById('cantidad').focus();
+        };
+        lista.appendChild(li);
+      });
+    }
+
+    // Modal ARCA
+    function abrirModalARCA() {
+      const modal = new bootstrap.Modal(document.getElementById('modalARCA'));
+      modal.show();
+      setTimeout(() => {
+        const numero = Math.floor(Math.random() * 100000000).toString().padStart(8, '0');
+        document.getElementById('numeroFactura').value = `0001-${numero}`;
+        modal.hide();
+      }, 1500);
+    }
+
+    // Modal de Pago Detallado
+    function abrirModalPago(metodo) {
+      metodoActual = metodo;
+      const total = parseFloat(document.getElementById('totalGeneral').textContent);
+      const pagado = pagos.reduce((s, p) => s + p.monto, 0);
+      const restante = total - pagado;
+      document.getElementById('metodoSeleccionado').textContent = metodo;
+      document.getElementById('totalModal').textContent = total.toFixed(2);
+      document.getElementById('montoPagoInput').value = restante.toFixed(2);
+      document.getElementById('montoPagoInput').focus();
+      actualizarListaPagos();
+      const modal = new bootstrap.Modal(document.getElementById('modalPago'));
+      modal.show();
+      if (metodo === 'Efectivo') {
+        document.getElementById('tipoFactura').value = 'X';
+        document.getElementById('btnARCA').disabled = true;
+      } else {
+        document.getElementById('btnARCA').disabled = false;
+      }
+    }
+    function confirmarPagoEnter(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        confirmarPago();
+      }
+    }
+    function confirmarPago() {
+      const monto = parseFloat(document.getElementById('montoPagoInput').value);
+      if (!isNaN(monto) && monto > 0) {
+        pagos.push({ metodo: metodoActual, monto });
+        actualizarTotalPagado();
+        actualizarListaPagos();
+        const modalInstance = bootstrap.Modal.getInstance(document.getElementById('modalPago'));
+        modalInstance.hide();
+      }
+    }
+    function actualizarTotalPagado() {
+      const totalPagado = pagos.reduce((sum, p) => sum + p.monto, 0);
+      document.getElementById('totalPagado').textContent = totalPagado.toFixed(2);
+      const totalGeneral = parseFloat(document.getElementById('totalGeneral').textContent);
+      document.getElementById('emitirBtn').disabled = totalPagado < totalGeneral;
+    }
+    function actualizarListaPagos() {
+      let lista = document.getElementById('listaPagos');
+      if (!lista) {
+        lista = document.createElement('ul');
+        lista.className = 'list-group mt-2';
+        lista.id = 'listaPagos';
+        document.querySelector('#modalPago .modal-body').appendChild(lista);
+      } else {
+        lista.innerHTML = '';
+      }
+      pagos.forEach((p, i) => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+        li.innerHTML = `${p.metodo}: $${p.monto.toFixed(2)} <button class="btn btn-sm btn-outline-danger" onclick="eliminarPago(${i})">Eliminar</button>`;
+        lista.appendChild(li);
+      });
+    }
+    function eliminarPago(index) {
+      pagos.splice(index, 1);
+      actualizarTotalPagado();
+      actualizarListaPagos();
+    }
+
+    // Ingreso de productos y cálculo de totales
+    function agregarProducto() {
+      const producto = document.getElementById('producto').value.trim();
+      const precio = parseFloat(document.getElementById('precio').value);
+      const cantidad = parseFloat(document.getElementById('cantidad').value);
+      const descuento = parseFloat(document.getElementById('descuento').value) || 0;
+      const iva = parseFloat(document.getElementById('iva').value) || 0;
+      if (!producto || isNaN(precio) || isNaN(cantidad)) return;
+      const precioConDescuento = precio - (precio * descuento / 100);
+      const totalProducto = precioConDescuento * cantidad;
+      const montoIVA = totalProducto * (iva / 100);
+      const totalConIVA = totalProducto + montoIVA;
+      subtotal += totalProducto;
+      totalIVA += montoIVA;
+      const li = document.createElement('li');
+      li.className = 'list-group-item d-flex justify-content-between align-items-center';
+      li.dataset.subtotal = totalProducto;
+      li.dataset.iva = montoIVA;
+      li.innerHTML = `${producto} - $${precioConDescuento.toFixed(2)} x ${cantidad} + IVA ${iva}% <span>$${totalConIVA.toFixed(2)}</span> <button class="btn btn-sm btn-danger" onclick="eliminarProducto(this, ${totalProducto}, ${montoIVA})">Eliminar</button>`;
+      document.getElementById('listaProductos').appendChild(li);
+      actualizarTotales();
+      document.getElementById('producto').value = '';
+      document.getElementById('precio').value = '';
+      document.getElementById('cantidad').value = '';
+      document.getElementById('descuento').value = '';
+      document.getElementById('iva').value = '';
+      document.getElementById('producto').focus();
+    }
+    function actualizarTotales() {
+      const items = document.querySelectorAll('#listaProductos li');
+      let sub = 0;
+      let ivaTotal = 0;
+      items.forEach(item => {
+        sub += parseFloat(item.dataset.subtotal) || 0;
+        ivaTotal += parseFloat(item.dataset.iva) || 0;
+      });
+      const totalGeneral = sub + ivaTotal;
+      document.getElementById('subtotal').textContent = sub.toFixed(2);
+      document.getElementById('totalIVA').textContent = ivaTotal.toFixed(2);
+      document.getElementById('totalGeneral').textContent = totalGeneral.toFixed(2);
+      actualizarTotalPagado();
+    }
+    function eliminarProducto(boton, sinIVA, ivaItem) {
+      const li = boton.closest('li');
+      if (li) li.remove();
+      subtotal -= sinIVA;
+      totalIVA -= ivaItem;
+      actualizarTotales();
+      if (document.querySelectorAll('#listaProductos li').length === 0) {
+        document.getElementById('emitirBtn').disabled = true;
+      }
+    }
+
+    // Modal de Impresión
+    function abrirModalImpresion() {
+      const totalGeneral = parseFloat(document.getElementById('totalGeneral').textContent);
+      const totalPagado = pagos.reduce((sum, p) => sum + p.monto, 0);
+      const vuelto = totalPagado - totalGeneral;
+      document.getElementById('modalTotalPagado').textContent = totalPagado.toFixed(2);
+      document.getElementById('modalVuelto').textContent = vuelto > 0 ? `Vuelto: $${vuelto.toFixed(2)}` : '';
+      const modal = new bootstrap.Modal(document.getElementById('modalImpresion'));
+      modal.show();
+    }
+
+    function finalizarFactura(metodo) {
+      alert(`Factura emitida por ${metodo}`);
+      guardarFactura();
+      reiniciarFactura();
+      const modal = bootstrap.Modal.getInstance(document.getElementById('modalImpresion'));
+      modal.hide();
+    }
+
+    function guardarFactura() {
+      const productos = [];
+      document.querySelectorAll('#listaProductos li').forEach(item => {
+        const texto = item.querySelector('span').textContent;
+        productos.push(texto);
+      });
+      const datos = {
+        numeroFactura: document.getElementById('numeroFactura').value,
+        tipoFactura: document.getElementById('tipoFactura').value,
+        cliente: document.getElementById('cliente').value,
+        subtotal: document.getElementById('subtotal').textContent,
+        totalIVA: document.getElementById('totalIVA').textContent,
+        totalGeneral: document.getElementById('totalGeneral').textContent,
+        pagos: pagos,
+        productos: productos
+      };
+      fetch('http://localhost:3000/api/facturas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datos)
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Factura guardada con éxito', data);
+      })
+      .catch(error => {
+        console.error('Error al guardar la factura', error);
+      });
+    }
+
+    function reiniciarFactura() {
+      pagos = [];
+      document.getElementById('listaProductos').innerHTML = '';
+      subtotal = 0;
+      totalIVA = 0;
+      actualizarTotales();
+      document.getElementById('totalPagado').textContent = '0.00';
+      document.getElementById('emitirBtn').disabled = true;
+      document.getElementById('btnARCA').disabled = false;
+      document.getElementById('numeroFactura').value = '0001-00000001';
+    }
+  </script>
+  <script>
+    // Modal de Impresión agregado dinámicamente
+    document.write(`
+      <div class="modal fade" id="modalImpresion" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">¿Cómo desea emitir la factura?</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body text-center">
+              <p>Total pagado: $<span id="modalTotalPagado">0.00</span></p>
+              <p id="modalVuelto"></p>
+              <button class="btn btn-outline-primary btn-lg m-2" onclick="finalizarFactura('A4')">Factura (A4)</button>
+              <button class="btn btn-outline-dark btn-lg m-2" onclick="finalizarFactura('Ticket')">Ticket</button>
+              <button class="btn btn-outline-success btn-lg m-2" onclick="finalizarFactura('WhatsApp')">WhatsApp</button>
+              <button class="btn btn-outline-info btn-lg m-2" onclick="finalizarFactura('Email')">Email</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `);
+  </script>
+</body>
+</html>
