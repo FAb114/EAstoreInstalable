@@ -5,16 +5,11 @@
     "description": "Sistema de facturación para EAstore - Venta de electrónicos",
     "main": "main.js",
     "scripts": {
-        "start": "electron .",
-        "dev": "electron . --dev",
-        "test": "jest",
-        "build": "electron-builder",
-        "build:win": "electron-builder --win",
-        "build:mac": "electron-builder --mac",
-        "build:linux": "electron-builder --linux",
-        "rebuild": "electron-rebuild",
-        "postinstall": "npm run rebuild"
-    },
+  "start": "electron .",
+  "rebuild": "electron-rebuild",
+  "postinstall": "npm run rebuild"
+},
+
     "repository": {
         "type": "git",
         "url": "git+https://github.com/eastore/facturacion.git"

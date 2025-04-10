@@ -270,7 +270,7 @@
         <i class="bi bi-box menu-icon"></i>
         <span>Productos</span>
       </div>
-      <div class="menu-item">
+      <div class="menu-item" id="btnGestionClientes">
         <i class="bi bi-people menu-icon"></i>
         <span>Clientes</span>
       </div>
@@ -405,7 +405,7 @@
   </div>
 
   <!-- MODALES -->
-
+  
   <!-- Modal Facturación (convertido de la sección Facturación) -->
   <div class="modal fade" id="modalFacturacion" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -447,7 +447,7 @@
             <div class="col-md-2 d-flex align-items-end">
               <button class="btn btn-outline-primary w-100 btn-custom" id="btnARCA" onclick="abrirModalARCA()">
                 <i class="bi bi-receipt-cutoff"></i> ARCA
-              </button>
+              </button>            
             </div>
           </div>
           <!-- Ingreso de productos --> 
@@ -491,186 +491,16 @@
 
   <div class="modal fade" id="modalProductos" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered" style="max-width: 90%;">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Gestión de Productos</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <!-- PESTAÑAS (Nav Tabs) -->
-          <ul class="nav nav-tabs" id="productosTab" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button class="nav-link active" id="alta-individual-tab" data-bs-toggle="tab" data-bs-target="#alta-individual" type="button" role="tab">
-                Alta Individual
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="alta-masiva-tab" data-bs-toggle="tab" data-bs-target="#alta-masiva" type="button" role="tab">
-                Alta Masiva
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="lista-tab" data-bs-toggle="tab" data-bs-target="#lista" type="button" role="tab">
-                Lista de Productos
-              </button>
-            </li>
-          </ul>
-
-          <!-- CONTENIDO de las Pestañas -->
-          <div class="tab-content mt-3" id="productosTabContent">
-            <!-- Alta Individual -->
-<div class="tab-pane fade show active" id="alta-individual" role="tabpanel">
-  <h4>Alta Individual de Producto</h4>
-  <form id="formAltaIndividual">
-    <div class="row g-3">
-      <div class="col-md-3">
-        <label for="ean" class="form-label">EAN (Código de Barras)</label>
-        <input type="text" class="form-control" id="ean" required
-               onkeydown="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('nombre').focus(); }">
-      </div>
-      <div class="col-md-5">
-        <label for="nombre" class="form-label">Nombre del Producto</label>
-        <input type="text" class="form-control" id="nombre" required
-               onkeydown="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('categoria').focus(); }">
-      </div>
-      <div class="col-md-4">
-        <label for="categoria" class="form-label">Categoría</label>
-        <input type="text" class="form-control" id="categoria" required
-               onkeydown="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('detalle').focus(); }">
-      </div>
-      <div class="col-md-12">
-        <label for="detalle" class="form-label">Detalle / Descripción</label>
-        <textarea class="form-control" id="detalle" rows="2"
-                  onkeydown="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('precioCompra').focus(); }"></textarea>
-      </div>
-      <div class="col-md-3">
-        <label for="precioCompra" class="form-label">Precio de Compra</label>
-        <input type="number" step="0.01" class="form-control" id="precioCompra" required
-               onkeydown="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('precioVenta').focus(); }">
-      </div>
-      <div class="col-md-3">
-        <label for="precioVenta" class="form-label">Precio de Venta</label>
-        <input type="number" step="0.01" class="form-control" id="precioVenta" required
-               onkeydown="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('stock').focus(); }">
-      </div>
-      <div class="col-md-3">
-        <label for="porcentajeGanancia" class="form-label">% Ganancia</label>
-        <input type="number" step="0.01" class="form-control" id="porcentajeGanancia" readonly>
-      </div>
-      <div class="col-md-3">
-        <label for="stock" class="form-label">Cantidad en Stock</label>
-        <input type="number" class="form-control" id="stock" required
-               onkeydown="if(event.key==='Enter'){ event.preventDefault(); document.getElementById('btnAgregarProducto').click(); }">
-      </div>
-    </div>
-    <div class="mt-3 text-end">
-      <button type="submit" class="btn btn-primary" id="btnAgregarProducto">
-        Agregar Producto
-      </button>
-    </div>
-  </form>
-
-  <script>
-    // Conexión real al backend al hacer submit
-    document.getElementById('formAltaIndividual').addEventListener('submit', async function(e) {
-      e.preventDefault();
-
-      const producto = {
-  codigo: document.getElementById('ean').value,
-  nombre: document.getElementById('nombre').value,
-  descripcion: document.getElementById('detalle').value,
-  categoria: document.getElementById('categoria').value,
-  costo: parseFloat(document.getElementById('precioCompra').value) || 0,
-  precio: parseFloat(document.getElementById('precioVenta').value) || 0,
-  porcentajeGanancia: parseFloat(document.getElementById('porcentajeGanancia').value) || 0,
-  stock: parseInt(document.getElementById('stock').value) || 0,
-      };
-
-      try {
-        const res = await fetch('http://localhost:3000/api/productos', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify(producto)
-      
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          alert("Producto guardado correctamente");
-          this.reset();
-          document.getElementById('ean').focus();
-        } else {
-          const error = await res.json();
-          alert('Error al guardar el producto: ' + (error.error || 'Error desconocido'));
-        }
-      } catch (err) {
-        console.error(err);
-        alert('Error al conectar con el servidor.');
-      }
-    });
-  </script>
-</div>
-
-
-            <!-- Alta Masiva -->
-            <div class="tab-pane fade" id="alta-masiva" role="tabpanel">
-              <h4>Alta Masiva de Productos</h4>
-              <div class="mb-3">
-                <label for="archivoExcel" class="form-label">Subir archivo Excel</label>
-                <input class="form-control" type="file" id="archivoExcel" accept=".xls,.xlsx">
-              </div>
-              <div class="mb-3">
-                <button class="btn btn-success" id="btnSubirExcel">Subir Productos</button>
-                <button class="btn btn-outline-secondary" id="btnDescargarPlantilla">
-                  <i class="bi bi-download"></i> Descargar Plantilla Excel
-                </button>
-              </div>
-              <div id="resultadoMasiva"></div>
-            </div>
-
-            <!-- Lista de Productos -->
-            <div class="tab-pane fade" id="lista" role="tabpanel">
-              <h4>Lista de Productos</h4>
-              <div class="row g-2 mb-3">
-                <div class="col-md-3">
-                  <input type="text" class="form-control" id="filtroNombre" placeholder="Filtrar por nombre">
-                </div>
-                <div class="col-md-3">
-                  <input type="text" class="form-control" id="filtroCategoria" placeholder="Filtrar por categoría">
-                </div>
-                <div class="col-md-3">
-                  <button class="btn btn-secondary" id="btnFiltrar">Filtrar</button>
-                </div>
-              </div>
-              <div class="table-responsive">
-                <table class="table table-bordered table-hover" id="tablaProductos">
-                  <thead class="table-light">
-                    <tr>
-                      <th>EAN</th>
-                      <th>Nombre</th>
-                      <th>Detalle</th>
-                      <th>Categoría</th>
-                      <th>Precio Compra</th>
-                      <th>Precio Venta</th>
-                      <th>% Ganancia</th>
-                      <th>Stock</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <!-- Se cargarán dinámicamente -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div> <!-- Fin .tab-content -->
-        </div> <!-- Fin .modal-body -->
-      </div>
+      <div class="modal-content" id="contenedorProductos"></div>
     </div>
   </div>
+
+  <div class="modal fade" id="modalClientes" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" style="max-width: 90%;">
+      <div class="modal-content" id="contenedorClientes"></div>
+    </div>
+  </div>
+  
 
   <!-- Modales ya existentes (Pago, Búsqueda, ARCA, Impresión) -->
   <!-- Modal de Pago Detallado -->
@@ -1050,6 +880,69 @@
       }, 800);
     });
   </script>
+  <script>
+    const modalProductos = document.getElementById('modalProductos');
+    modalProductos.addEventListener('show.bs.modal', async () => {
+      const contenedor = document.getElementById('contenedorProductos');
+      if (contenedor.innerHTML.trim() === "") {
+        try {
+          const res = await fetch('productos.html');
+          const html = await res.text();
+          contenedor.innerHTML = html;
+  
+          // Re-ejecutar scripts embebidos si es necesario
+          contenedor.querySelectorAll("script").forEach(oldScript => {
+            const newScript = document.createElement("script");
+            newScript.text = oldScript.text;
+            document.body.appendChild(newScript);
+            oldScript.remove();
+          });
+  
+        } catch (err) {
+          contenedor.innerHTML = '<div class="p-3 text-danger">Error al cargar productos.html</div>';
+          console.error(err);
+        }
+      }
+    });
+  </script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Agregar event listener para el botón de clientes
+    document.getElementById('btnGestionClientes').addEventListener('click', function() {
+      // Usar Bootstrap para mostrar el modal
+      const modalClientes = new bootstrap.Modal(document.getElementById('modalClientes'));
+      modalClientes.show();
+    });
+  });
+
+  // Evento para cargar el contenido del modal cuando se abre
+  const modalClientes = document.getElementById('modalClientes');
+  modalClientes.addEventListener('show.bs.modal', async () => {
+    const contenedor = document.getElementById('contenedorClientes');
+    if (contenedor.innerHTML.trim() === "") {
+      try {
+        const res = await fetch('clientes.html');
+        const html = await res.text();
+        contenedor.innerHTML = html;
+
+        // Re-ejecutar scripts embebidos si es necesario
+        contenedor.querySelectorAll("script").forEach(oldScript => {
+          const newScript = document.createElement("script");
+          newScript.text = oldScript.text;
+          document.body.appendChild(newScript);
+          oldScript.remove();
+        });
+
+      } catch (err) {
+        contenedor.innerHTML = '<div class="p-3 text-danger">Error al cargar clientes.html</div>';
+        console.error(err);
+      }
+    }
+  });
+</script>
+  
     
 </body>
 </html>
+

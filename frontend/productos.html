@@ -1,172 +1,807 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>Gestión de Productos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+      background-color: #f8f9fa;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .tabs button {
+      padding: 0.6rem 1.5rem;
+      border: none;
+      border-radius: 4px;
+      background-color: #ddd;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .tabs button.active {
+      background-color: #007bff;
+      color: white;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 500;
+    }
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 6px;
+      margin-top: 4px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button[type="submit"] {
+      padding: 10px 15px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      margin-top: 15px;
+      border-collapse: collapse;
+    }
+    table th, table td {
+      padding: 8px;
+      border: 1px solid #ccc;
+    }
+    table th {
+      background-color: #f1f1f1;
+    }
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+    .btn-action {
+      margin-right: 5px;
+    }
+    .file-upload {
+      margin: 20px 0;
+      padding: 20px;
+      border: 2px dashed #ccc;
+      border-radius: 5px;
+      text-align: center;
+    }
+    .file-upload:hover {
+      border-color: #007bff;
+    }
+  </style>
 </head>
 <body>
-  <h1>Alta de Producto</h1>
 
-  <form id="formAltaIndividual">
-    <label for="ean">Código de Barras (EAN):</label>
-    <input type="text" id="ean" name="ean" required /><br/>
+<div class="container">
+  <h1>Gestión de Productos</h1>
 
-    <label for="nombre">Nombre:</label>
-    <input type="text" id="nombre" name="nombre" required /><br/>
+  <div class="tabs">
+    <button data-tab="alta" class="active">Carga individual</button>
+    <button data-tab="masiva">Carga masiva</button>
+    <button data-tab="busqueda">Buscar producto</button>
+  </div>
 
-    <label for="detalle">Descripción:</label>
-    <input type="text" id="detalle" name="detalle" /><br/>
+  <!-- Tab Carga Individual -->
+  <div id="tab-alta" class="tab-content active">
+    <form id="formAltaIndividual">
+      <div class="row">
+        <div class="col-md-6">
+          <label for="ean">Código de Barras (EAN):</label>
+          <input type="text" id="ean" placeholder="Dejar vacío para generar automáticamente" />
 
-    <label for="categoria">Categoría:</label>
-    <input type="text" id="categoria" name="categoria" /><br/>
+          <label for="nombre">Nombre:</label>
+          <input type="text" id="nombre" required />
 
-    <label for="precioCompra">Precio de Compra:</label>
-    <input type="number" step="0.01" id="precioCompra" name="precioCompra" required /><br/>
+          <label for="detalle">Descripción:</label>
+          <input type="text" id="detalle" />
 
-    <label for="porcentajeGanancia">Porcentaje de Ganancia:</label>
-    <input type="number" step="0.01" id="porcentajeGanancia" name="porcentajeGanancia" value="20" /><br/>
+          <label for="categoria">Categoría:</label>
+          <!-- Campo cambiado a input de texto y se le añade autocompletar -->
+          <input type="text" id="categoria" placeholder="Ingrese categoría" />
+        </div>
+        <div class="col-md-6">
+          <label for="precioCompra">Precio de Compra:</label>
+          <input type="number" step="0.01" id="precioCompra" required />
 
-    <label for="precioVenta">Precio de Venta:</label>
-    <input type="number" step="0.01" id="precioVenta" name="precioVenta" readonly /><br/>
+          <!-- Se permite ingresar el precio de venta -->
+          <label for="precioVenta">Precio de Venta:</label>
+          <input type="number" step="0.01" id="precioVenta" required />
 
-    <label for="stock">Stock Inicial:</label>
-    <input type="number" id="stock" name="stock" /><br/>
+          <label for="porcentajeGanancia">Porcentaje de Ganancia (%):</label>
+          <!-- Este campo es de solo lectura y se calcula con base en precio de compra y venta -->
+          <input type="number" step="0.01" id="porcentajeGanancia" readonly />
 
-    <button type="submit">Guardar Producto</button>
-  </form>
+          <label for="stock">Stock Inicial:</label>
+          <input type="number" id="stock" min="0" value="0" />
+          
+          <label for="stockMinimo">Stock Mínimo:</label>
+          <input type="number" id="stockMinimo" min="0" value="5" />
 
-  <table id="tablaProductos">
-    <thead>
-      <tr>
-        <th>EAN</th>
-        <th>Nombre</th>
-        <th>Precio Venta</th>
-        <th>Stock</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+          <label for="imagenes">Imágenes (opcional):</label>
+          <input type="file" id="imagenes" accept="image/*" multiple />
+        </div>
+      </div>
+      
+      <div class="row mt-3">
+        <div class="col-12 text-center">
+          <button type="submit" class="btn btn-success">Guardar Producto</button>
+          <button type="reset" class="btn btn-secondary">Limpiar</button>
+        </div>
+      </div>
+    </form>
+  </div>
 
-  <script>
-    function agregarProductoALaTabla(producto) {
-      const tabla = document.getElementById('tablaProductos').querySelector('tbody');
-      const fila = document.createElement('tr');
+  <!-- Tab Carga Masiva -->
+  <div id="tab-masiva" class="tab-content">
+    <div class="file-upload">
+      <h4>Subir archivo de productos</h4>
+      <p>Puedes importar tus productos desde un archivo Excel (.xlsx) o CSV (.csv)</p>
+      <input type="file" id="fileUpload" accept=".xlsx, .csv" class="form-control" />
+      <div class="mt-3">
+        <!-- Se actualizó la ruta del botón si corresponde -->
+        <a href="assens/plantilla_carga_masiva.xlsx" download class="btn btn-outline-secondary">Descargar plantilla</a>
+        <button id="btnUpload" class="btn btn-primary">Procesar archivo</button>
+      </div>
+    </div>
+    
+    <div id="previewArea" style="display: none;">
+      <h4>Vista previa</h4>
+      <div class="alert alert-info">
+        Se encontraron <span id="productCount">0</span> productos en el archivo.
+      </div>
+      <table class="table table-striped" id="previewTable">
+        <thead>
+          <tr>
+            <th>EAN</th><th>Nombre</th><th>Precio Compra</th><th>Precio Venta</th><th>Stock</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button id="btnImport" class="btn btn-success">Importar productos</button>
+    </div>
+  </div>
 
-      fila.innerHTML = `
-        <td>${producto.codigo || producto.ean}</td>
-        <td>${producto.nombre}</td>
-        <td>$${producto.precio || producto.precioVenta}</td>
-        <td>${producto.stock}</td>
-      `;
+  <!-- Tab Búsqueda -->
+  <div id="tab-busqueda" class="tab-content">
+    <div class="mb-3">
+      <label for="buscarProducto">Buscar por nombre o código:</label>
+      <input type="text" id="buscarProducto" class="form-control" placeholder="Ej: mouse, M001..." />
+    </div>
 
-      tabla.appendChild(fila);
+    <table id="resultadosBusqueda" class="table table-striped">
+      <thead>
+        <tr>
+          <th>EAN</th><th>Nombre</th><th>Precio</th><th>Stock</th><th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal para editar producto -->
+<div class="modal fade" id="editarProductoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Editar Producto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formEditarProducto">
+          <input type="hidden" id="editId">
+          <div class="row">
+            <div class="col-md-6">
+              <label for="editEan">Código de Barras (EAN):</label>
+              <input type="text" id="editEan" placeholder="Dejar vacío para generar" />
+
+              <label for="editNombre">Nombre:</label>
+              <input type="text" id="editNombre" required />
+
+              <label for="editDetalle">Descripción:</label>
+              <input type="text" id="editDetalle" />
+
+              <label for="editCategoria">Categoría:</label>
+              <!-- Se cambia a input de texto -->
+              <input type="text" id="editCategoria" placeholder="Ingrese categoría" />
+            </div>
+            <div class="col-md-6">
+              <label for="editPrecioCompra">Precio de Compra:</label>
+              <input type="number" step="0.01" id="editPrecioCompra" required />
+
+              <label for="editPrecioVenta">Precio de Venta:</label>
+              <input type="number" step="0.01" id="editPrecioVenta" required />
+
+              <label for="editPorcentajeGanancia">Porcentaje de Ganancia (%):</label>
+              <input type="number" step="0.01" id="editPorcentajeGanancia" readonly />
+
+              <label for="editStock">Stock:</label>
+              <input type="number" id="editStock" min="0" />
+
+              <label for="editStockMinimo">Stock Mínimo:</label>
+              <input type="number" id="editStockMinimo" min="0" />
+              
+              <label for="editImagenes">Imágenes (opcional):</label>
+              <input type="file" id="editImagenes" accept="image/*" multiple />
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" id="btnGuardarEdicion" class="btn btn-primary">Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast de notificaciones -->
+<div class="toast-container">
+  <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <strong class="me-auto" id="toastTitle">Notificación</strong>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body" id="toastMessage"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<script>
+  // Función para calcular el % de ganancia a partir de precioCompra y precioVenta
+  function calcularGanancia(inputCompra, inputVenta, inputGanancia) {
+    const compra = parseFloat(inputCompra.value);
+    const venta = parseFloat(inputVenta.value);
+    if (!isNaN(compra) && compra > 0 && !isNaN(venta)) {
+      const ganancia = ((venta - compra) / compra) * 100;
+      inputGanancia.value = ganancia.toFixed(2);
+    } else {
+      inputGanancia.value = '';
     }
+  }
+  
+  function configurarCalculoGanancia(inputCompra, inputVenta, inputGanancia) {
+    inputCompra.addEventListener('input', () => calcularGanancia(inputCompra, inputVenta, inputGanancia));
+    inputVenta.addEventListener('input', () => calcularGanancia(inputCompra, inputVenta, inputGanancia));
+  }
 
-    function calcularPrecioVenta() {
-      const costo = parseFloat(document.getElementById('precioCompra').value);
-      const ganancia = parseFloat(document.getElementById('porcentajeGanancia').value);
+  // Funciones de notificación
+  function mostrarNotificacion(titulo, mensaje, tipo = 'success') {
+    const toast = document.getElementById('notificationToast');
+    const toastTitle = document.getElementById('toastTitle');
+    const toastMessage = document.getElementById('toastMessage');
+    
+    toastTitle.textContent = titulo;
+    toastMessage.textContent = mensaje;
+    toast.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'text-white');
+    
+    if (tipo === 'success') {
+      toast.classList.add('bg-success', 'text-white');
+    } else if (tipo === 'error') {
+      toast.classList.add('bg-danger', 'text-white');
+    } else if (tipo === 'warning') {
+      toast.classList.add('bg-warning');
+    }
+    
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+  }
 
-      if (!isNaN(costo) && !isNaN(ganancia)) {
-        const precioVenta = costo + (costo * (ganancia / 100));
-        document.getElementById('precioVenta').value = precioVenta.toFixed(2);
+  // Navegación de pestañas
+  document.querySelectorAll('.tabs button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+
+      if (btn.dataset.tab === 'busqueda') {
+        setTimeout(() => document.getElementById('buscarProducto').focus(), 50);
       }
+    });
+  });
+
+  // Configurar cálculo de ganancia para formularios
+  document.addEventListener('DOMContentLoaded', () => {
+    configurarCalculoGanancia(
+      document.getElementById('precioCompra'),
+      document.getElementById('precioVenta'),
+      document.getElementById('porcentajeGanancia')
+    );
+    configurarCalculoGanancia(
+      document.getElementById('editPrecioCompra'),
+      document.getElementById('editPrecioVenta'),
+      document.getElementById('editPorcentajeGanancia')
+    );
+    
+    // Agregar navegación con Enter en todos los inputs del formulario de carga individual
+    const inputsAlta = document.querySelectorAll('#formAltaIndividual input');
+    inputsAlta.forEach((input, index, arr) => {
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const next = arr[index + 1];
+          if (next) next.focus();
+        }
+      });
+    });
+    
+    // Inicializar tooltips y autocompletar para categoría
+    inicializarTooltips();
+    inicializarAutocompletado();
+    
+    // Agregar iconos de Bootstrap
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css';
+    document.head.appendChild(link);
+  });
+
+  // Función para buscar productos
+  async function buscarProductos(query) {
+    try {
+      const res = await fetch(`http://localhost:3000/api/productos?nombre=${encodeURIComponent(query)}`);
+      if (!res.ok) {
+        throw new Error('Error al obtener productos');
+      }
+      return await res.json();
+    } catch (err) {
+      console.error('Error al buscar productos:', err);
+      mostrarNotificacion('Error', 'No se pudieron cargar los productos', 'error');
+      return [];
+    }
+  }
+
+  // Renderizar resultados de búsqueda
+  function renderizarResultados(productos) {
+    const tbody = document.querySelector('#resultadosBusqueda tbody');
+    tbody.innerHTML = '';
+
+    if (productos.length === 0) {
+      const fila = document.createElement('tr');
+      fila.innerHTML = '<td colspan="5" class="text-center">No se encontraron productos</td>';
+      tbody.appendChild(fila);
+      return;
     }
 
-    document.getElementById('precioCompra').addEventListener('input', calcularPrecioVenta);
-    document.getElementById('porcentajeGanancia').addEventListener('input', calcularPrecioVenta);
-
-    // Calcular precio venta al cargar la página
-    document.addEventListener('DOMContentLoaded', function() {
-      calcularPrecioVenta();
+    productos.forEach(p => {
+      const fila = document.createElement('tr');
+      fila.innerHTML = `
+        <td>${p.codigo}</td>
+        <td>${p.nombre}</td>
+        <td>$${p.precio.toFixed(2)}</td>
+        <td>${p.stock}</td>
+        <td>
+          <button class="btn btn-sm btn-primary btn-action" data-id="${p.id || p._id}" data-action="editar">Editar</button>
+          <button class="btn btn-sm btn-danger btn-action" data-id="${p.id || p._id}" data-action="eliminar">Eliminar</button>
+        </td>
+      `;
+      tbody.appendChild(fila);
     });
 
-    // Alta real del producto con conexión al backend
-    document.getElementById('formAltaIndividual').addEventListener('submit', async function(e) {
-      e.preventDefault();
+    document.querySelectorAll('.btn-action').forEach(btn => {
+      btn.addEventListener('click', handleAccionProducto);
+    });
+  }
 
-      // Validaciones
-      const codigo = document.getElementById('ean').value.trim();
-      const nombre = document.getElementById('nombre').value.trim();
-      const precioCompra = parseFloat(document.getElementById('precioCompra').value);
-      const porcentajeGanancia = parseFloat(document.getElementById('porcentajeGanancia').value);
-      const precioVenta = parseFloat(document.getElementById('precioVenta').value);
-      
-      // Validar campos obligatorios
-      if (!codigo) {
-        alert('El código de barras (EAN) es obligatorio');
-        document.getElementById('ean').focus();
-        return;
-      }
-      
-      if (!nombre) {
-        alert('El nombre del producto es obligatorio');
-        document.getElementById('nombre').focus();
-        return;
-      }
-      
-      if (isNaN(precioCompra) || precioCompra <= 0) {
-        alert('El precio de compra debe ser un número mayor a 0');
-        document.getElementById('precioCompra').focus();
-        return;
-      }
-      
-      if (isNaN(porcentajeGanancia)) {
-        alert('El porcentaje de ganancia debe ser un número');
-        document.getElementById('porcentajeGanancia').focus();
-        return;
-      }
-      
-      if (isNaN(precioVenta) || precioVenta <= 0) {
-        alert('El precio de venta debe ser un número mayor a 0');
-        return;
-      }
+  // Búsqueda de productos (evento)
+  document.getElementById('buscarProducto').addEventListener('input', async (e) => {
+    const query = e.target.value.trim();
+    if (query.length < 2) {
+      document.querySelector('#resultadosBusqueda tbody').innerHTML = '';
+      return;
+    }
+    const productos = await buscarProductos(query);
+    renderizarResultados(productos);
+  });
 
-      const producto = {
-        codigo: codigo,
-        nombre: nombre,
-        descripcion: document.getElementById('detalle').value.trim(),
-        categoria: document.getElementById('categoria').value.trim(),
-        costo: precioCompra,
-        precio: precioVenta,
-        porcentajeGanancia: porcentajeGanancia,
-        stock: parseInt(document.getElementById('stock').value) || 0,
-        stockMinimo: 5,
-        marca: '',
-        proveedor: '',
-        activo: true,
-        impuesto: {
-          tipo: 'IVA',
-          porcentaje: 21
-        },
-        imagenes: []
-      };
+  // Manejar acciones de editar/eliminar producto
+  async function handleAccionProducto(e) {
+    const id = e.target.dataset.id;
+    const accion = e.target.dataset.action;
+    
+    if (accion === 'editar') {
+      await cargarProductoEdicion(id);
+    } else if (accion === 'eliminar') {
+      if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
+        await eliminarProducto(id);
+      }
+    }
+  }
 
+  // Cargar producto para edición
+  async function cargarProductoEdicion(id) {
+    try {
+      const res = await fetch(`http://localhost:3000/api/productos/${id}`);
+      const producto = await res.json();
+      
+      // Llenar el formulario de edición
+      document.getElementById('editId').value = producto.id || producto._id;
+      document.getElementById('editEan').value = producto.codigo;
+      document.getElementById('editNombre').value = producto.nombre;
+      document.getElementById('editDetalle').value = producto.descripcion || '';
+      document.getElementById('editCategoria').value = producto.categoria || '';
+      document.getElementById('editPrecioCompra').value = producto.costo;
+      document.getElementById('editPrecioVenta').value = producto.precio;
+      calcularGanancia(
+        document.getElementById('editPrecioCompra'),
+        document.getElementById('editPrecioVenta'),
+        document.getElementById('editPorcentajeGanancia')
+      );
+      document.getElementById('editStock').value = producto.stock;
+      document.getElementById('editStockMinimo').value = producto.stockMinimo;
+      
+      const modal = new bootstrap.Modal(document.getElementById('editarProductoModal'));
+      modal.show();
+    } catch (err) {
+      console.error('Error al cargar el producto:', err);
+      mostrarNotificacion('Error', 'No se pudo cargar el producto', 'error');
+    }
+  }
+
+  // Eliminar producto
+  async function eliminarProducto(id) {
+    try {
+      const res = await fetch(`http://localhost:3000/api/productos/${id}`, {
+        method: 'DELETE'
+      });
+      
+      if (res.ok) {
+        mostrarNotificacion('Éxito', 'Producto eliminado correctamente', 'success');
+        const query = document.getElementById('buscarProducto').value.trim();
+        if (query.length >= 2) {
+          const productos = await buscarProductos(query);
+          renderizarResultados(productos);
+        }
+      } else {
+        mostrarNotificacion('Error', 'No se pudo eliminar el producto', 'error');
+      }
+    } catch (err) {
+      console.error('Error al eliminar el producto:', err);
+      mostrarNotificacion('Error', 'Error de conexión al eliminar', 'error');
+    }
+  }
+
+  // Guardar cambios de edición
+  document.getElementById('btnGuardarEdicion').addEventListener('click', async () => {
+    const id = document.getElementById('editId').value;
+    
+    const productoEditado = {
+      codigo: document.getElementById('editEan').value.trim(),
+      nombre: document.getElementById('editNombre').value.trim(),
+      descripcion: document.getElementById('editDetalle').value.trim(),
+      categoria: document.getElementById('editCategoria').value,
+      costo: parseFloat(document.getElementById('editPrecioCompra').value),
+      precio: parseFloat(document.getElementById('editPrecioVenta').value),
+      porcentajeGanancia: parseFloat(document.getElementById('editPorcentajeGanancia').value),
+      stock: parseInt(document.getElementById('editStock').value),
+      stockMinimo: parseInt(document.getElementById('editStockMinimo').value)
+    };
+    
+    try {
+      const res = await fetch(`http://localhost:3000/api/productos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productoEditado)
+      });
+      
+      if (res.ok) {
+        mostrarNotificacion('Éxito', 'Producto actualizado correctamente', 'success');
+        const modal = bootstrap.Modal.getInstance(document.getElementById('editarProductoModal'));
+        modal.hide();
+        const query = document.getElementById('buscarProducto').value.trim();
+        if (query.length >= 2) {
+          const productos = await buscarProductos(query);
+          renderizarResultados(productos);
+        }
+      } else {
+        const data = await res.json();
+        mostrarNotificacion('Error', data.error || 'No se pudo actualizar el producto', 'error');
+      }
+    } catch (err) {
+      console.error('Error al actualizar el producto:', err);
+      mostrarNotificacion('Error', 'Error de conexión al actualizar', 'error');
+    }
+  });
+
+  // Procesar archivo para carga masiva
+  document.getElementById('btnUpload').addEventListener('click', () => {
+    const fileInput = document.getElementById('fileUpload');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+      mostrarNotificacion('Aviso', 'Por favor selecciona un archivo', 'warning');
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
       try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, {type: 'array'});
+        const firstSheet = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheet];
+        const productos = XLSX.utils.sheet_to_json(worksheet);
+        
+        document.getElementById('productCount').textContent = productos.length;
+        const tbody = document.querySelector('#previewTable tbody');
+        tbody.innerHTML = '';
+        
+        productos.slice(0, 10).forEach(p => {
+          const fila = document.createElement('tr');
+          fila.innerHTML = `
+            <td>${p.codigo || p.ean || ''}</td>
+            <td>${p.nombre || ''}</td>
+            <td>${p.costo || p.precioCompra || 0}</td>
+            <td>${p.precio || p.precioVenta || 0}</td>
+            <td>${p.stock || 0}</td>
+          `;
+          tbody.appendChild(fila);
+        });
+        
+        if (productos.length > 10) {
+          const fila = document.createElement('tr');
+          fila.innerHTML = `<td colspan="5" class="text-center">... y ${productos.length - 10} productos más</td>`;
+          tbody.appendChild(fila);
+        }
+        
+        document.getElementById('previewArea').style.display = 'block';
+        window.productosParaImportar = productos;
+        
+      } catch (error) {
+        console.error('Error al procesar el archivo:', error);
+        mostrarNotificacion('Error', 'No se pudo procesar el archivo correctamente', 'error');
+      }
+    };
+    
+    reader.readAsArrayBuffer(file);
+  });
+
+  // Importar productos desde la vista previa
+  document.getElementById('btnImport').addEventListener('click', async () => {
+    if (!window.productosParaImportar || window.productosParaImportar.length === 0) {
+      mostrarNotificacion('Aviso', 'No hay productos para importar', 'warning');
+      return;
+    }
+    
+    const productos = window.productosParaImportar;
+    let importados = 0;
+    let errores = 0;
+    
+    document.getElementById('btnImport').disabled = true;
+    document.getElementById('btnImport').textContent = 'Importando...';
+    
+    for (const prod of productos) {
+      try {
+        const producto = {
+          codigo: prod.codigo || prod.ean || '',
+          nombre: prod.nombre || '',
+          descripcion: prod.descripcion || prod.detalle || '',
+          categoria: prod.categoria || '',
+          costo: parseFloat(prod.costo || prod.precioCompra || 0),
+          precio: parseFloat(prod.precio || prod.precioVenta || 0),
+          porcentajeGanancia: !isNaN(parseFloat(prod.precio || prod.precioVenta)) && !isNaN(parseFloat(prod.costo || prod.precioCompra))
+            ? ((parseFloat(prod.precio || prod.precioVenta) - parseFloat(prod.costo || prod.precioCompra)) / parseFloat(prod.costo || prod.precioCompra)) * 100
+            : 0,
+          stock: parseInt(prod.stock || 0),
+          stockMinimo: parseInt(prod.stockMinimo || 5),
+          marca: prod.marca || '',
+          proveedor: prod.proveedor || '',
+          activo: true,
+          impuesto: { tipo: 'IVA', porcentaje: 21 },
+          imagenes: []
+        };
+        
+        if (!producto.precio && producto.costo && producto.porcentajeGanancia) {
+          producto.precio = producto.costo + (producto.costo * (producto.porcentajeGanancia / 100));
+        }
+        
         const res = await fetch('http://localhost:3000/api/productos', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(producto)
         });
-
+        
         if (res.ok) {
-          const data = await res.json();
-          agregarProductoALaTabla(data.producto || producto);
-          this.reset();
-          document.getElementById('ean').focus();
-          // Recalcular el precio de venta después de resetear el formulario
-          setTimeout(calcularPrecioVenta, 0);
+          importados++;
         } else {
-          const error = await res.json();
-          alert('Error al guardar el producto: ' + (error.error || error.message || 'Error desconocido'));
+          errores++;
         }
-      } catch (err) {
-        console.error(err);
-        alert('Error al conectar con el servidor.');
+      } catch (error) {
+        console.error('Error al importar producto:', error);
+        errores++;
+      }
+    }
+    
+    document.getElementById('btnImport').disabled = false;
+    document.getElementById('btnImport').textContent = 'Importar productos';
+    
+    mostrarNotificacion(
+      'Importación finalizada', 
+      `Se importaron ${importados} productos correctamente. Errores: ${errores}`,
+      errores > 0 ? 'warning' : 'success'
+    );
+    
+    document.getElementById('previewArea').style.display = 'none';
+    document.getElementById('fileUpload').value = '';
+    window.productosParaImportar = null;
+  });
+
+  // Función de autocompletado para categorías (con sugerencias, pero permite escribir libremente)
+  function inicializarAutocompletado() {
+    const categoriasComunes = [
+      'Electrónica', 'Computación', 'Hogar', 'Ferretería', 
+      'Línea Blanca', 'Celulares', 'Accesorios', 'Bebidas',
+      'Alimentos', 'Limpieza', 'Perfumería', 'Ropa'
+    ];
+    
+    const datalist = document.createElement('datalist');
+    datalist.id = 'categoriasSugeridas';
+    
+    categoriasComunes.forEach(cat => {
+      const option = document.createElement('option');
+      option.value = cat;
+      datalist.appendChild(option);
+    });
+    
+    document.body.appendChild(datalist);
+    
+    document.getElementById('categoria').setAttribute('list', 'categoriasSugeridas');
+    document.getElementById('editCategoria').setAttribute('list', 'categoriasSugeridas');
+  }
+  
+  // Agregar tooltips para ayuda
+  function inicializarTooltips() {
+    const tooltips = [
+      { selector: 'label[for="ean"]', texto: 'Código de barras o SKU del producto (se genera automáticamente si se deja vacío)' },
+      { selector: 'label[for="porcentajeGanancia"]', texto: 'Ganancia calculada: ((precioVenta - precioCompra) / precioCompra) x 100' },
+      { selector: 'label[for="stockMinimo"]', texto: 'Cantidad mínima para alertar reposición' }
+    ];
+    
+    tooltips.forEach(item => {
+      const elemento = document.querySelector(item.selector);
+      if (elemento) {
+        elemento.innerHTML += ' <i class="bi bi-question-circle" data-bs-toggle="tooltip" title="' + item.texto + '"></i>';
       }
     });
-  </script>
+    
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  }
+  
+  // Función para exportar productos a Excel
+  async function exportarProductos() {
+    try {
+      const res = await fetch('http://localhost:3000/api/productos');
+      const productos = await res.json();
+      
+      if (!productos || productos.length === 0) {
+        mostrarNotificacion('Aviso', 'No hay productos para exportar', 'warning');
+        return;
+      }
+      
+      const ws = XLSX.utils.json_to_sheet(productos.map(p => ({
+        'Código': p.codigo,
+        'Nombre': p.nombre,
+        'Descripción': p.descripcion,
+        'Categoría': p.categoria,
+        'Precio Compra': p.costo,
+        'Porcentaje Ganancia': p.porcentajeGanancia,
+        'Precio Venta': p.precio,
+        'Stock': p.stock,
+        'Stock Mínimo': p.stockMinimo
+      })));
+      
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Productos');
+      
+      XLSX.writeFile(wb, 'productos_exportados.xlsx');
+      
+      mostrarNotificacion('Éxito', `Se exportaron ${productos.length} productos correctamente`, 'success');
+    } catch (err) {
+      console.error('Error al exportar productos:', err);
+      mostrarNotificacion('Error', 'No se pudieron exportar los productos', 'error');
+    }
+  }
+  
+  // Agregar botón de exportar en el tab de búsqueda
+  function agregarBotonExportar() {
+    const tabBusqueda = document.getElementById('tab-busqueda');
+    const exportBtn = document.createElement('button');
+    exportBtn.className = 'btn btn-outline-primary mt-3';
+    exportBtn.textContent = 'Exportar a Excel';
+    exportBtn.addEventListener('click', exportarProductos);
+    tabBusqueda.appendChild(exportBtn);
+  }
+  
+  agregarBotonExportar();
+  
+  // En el submit de la carga individual: si EAN está vacío, generarlo automáticamente
+  document.getElementById('formAltaIndividual').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    let ean = document.getElementById('ean').value.trim();
+    if (!ean) {
+      // Genera un código aleatorio de 12 dígitos
+      ean = Math.floor(100000000000 + Math.random() * 900000000000).toString();
+    }
+    
+    const producto = {
+      codigo: ean,
+      nombre: document.getElementById('nombre').value.trim(),
+      descripcion: document.getElementById('detalle').value.trim(),
+      categoria: document.getElementById('categoria').value,
+      costo: parseFloat(document.getElementById('precioCompra').value),
+      precio: parseFloat(document.getElementById('precioVenta').value),
+      // Se calcula la ganancia automáticamente
+      porcentajeGanancia: (function() {
+        const compra = parseFloat(document.getElementById('precioCompra').value);
+        const venta = parseFloat(document.getElementById('precioVenta').value);
+        return (!isNaN(compra) && compra > 0 && !isNaN(venta))
+               ? ((venta - compra) / compra * 100).toFixed(2)
+               : 0;
+      })(),
+      stock: parseInt(document.getElementById('stock').value) || 0,
+      stockMinimo: parseInt(document.getElementById('stockMinimo').value) || 5,
+      // Se pueden incluir imágenes si se suben (esto depende del manejo en el backend)
+      imagenes: [] 
+    };
+
+    try {
+      const res = await fetch('http://localhost:3000/api/productos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(producto)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        mostrarNotificacion('Éxito', 'Producto guardado correctamente', 'success');
+        e.target.reset();
+        // Restablecer valores por defecto
+        document.getElementById('stockMinimo').value = '5';
+        document.getElementById('porcentajeGanancia').value = '';
+        document.getElementById('ean').focus();
+      } else {
+        mostrarNotificacion('Error', data.error || 'Error desconocido', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      mostrarNotificacion('Error', 'Error al conectar con el servidor', 'error');
+    }
+  });
+</script>
 </body>
 </html>
+

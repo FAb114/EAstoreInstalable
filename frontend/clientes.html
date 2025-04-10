@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FactuSystem - Clientes</title>
+    <style>
+        :root {
+            --dark-bg: #f5f7fa;
+            --sidebar-bg: #1e2430;
+            --text-dark: #333;
+            --text-light: #f5f5f5;
+            --primary-color: #007bff;
+            --success-color: #28a745;
+            --secondary-color: #6c757d;
+            --border-color: #dee2e6;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-dark);
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            color: var(--text-light);
+            padding-top: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-header h2 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 24px;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: var(--text-light);
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .sidebar-item i {
+            margin-right: 10px;
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        .page-header h1 {
+            margin: 0 0 15px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .buttons-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            border-radius: 4px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0069d9;
+        }
+
+        .btn-secondary {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+
+        .btn-secondary:hover {
+            background-color: #dde2e6;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        .search-button {
+            background-color: #e9ecef;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-right: -10px;
+            margin-left: -10px;
+        }
+
+        .form-group {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding: 0 10px;
+            margin-bottom: 15px;
+        }
+
+        .form-control {
+            display: block;
+            width: 100%;
+            padding: 8px 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #495057;
+            background-color: #fff;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            transition: border-color 0.15s ease-in-out;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .table-container {
+            background-color: var(--card-bg);
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tr:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .badge-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .badge-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            padding: 5px;
+            font-size: 16px;
+            transition: color 0.2s;
+        }
+
+        .action-btn:hover {
+            color: #0056b3;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            border-radius: 5px;
+            width: 600px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .confirm-dialog {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .confirm-dialog p {
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-group {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+            
+            .sidebar {
+                width: 60px;
+            }
+            
+            .sidebar-item span {
+                display: none;
+            }
+            
+            .sidebar-item i {
+                margin-right: 0;
+            }
+            
+            .sidebar-header h2 {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <h1>Gestión de Clientes</h1>
+        </div>
+
+        <div class="buttons-container">
+            <button id="addClientBtn" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nuevo Cliente
+            </button>
+            <button class="btn btn-secondary search-button">
+                <i class="fas fa-search"></i> Buscar cliente
+            </button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Documento</th>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="clientesTable">
+                    <tr>
+                        <td>C-2025-001</td>
+                        <td>María González</td>
+                        <td>98765432</td>
+                        <td>maria.gonzalez@email.com</td>
+                        <td>123-456-7890</td>
+                        <td><span class="badge badge-success">Activo</span></td>
+                        <td>
+                            <button class="action-btn edit-btn" data-id="C-2025-001">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn" data-id="C-2025-001">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>C-2025-002</td>
+                        <td>Juan Pérez</td>
+                        <td>12345678</td>
+                        <td>juan.perez@email.com</td>
+                        <td>098-765-4321</td>
+                        <td><span class="badge badge-success">Activo</span></td>
+                        <td>
+                            <button class="action-btn edit-btn" data-id="C-2025-002">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn" data-id="C-2025-002">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>C-2025-003</td>
+                        <td>Electrónica del Sur</td>
+                        <td>20456789</td>
+                        <td>contacto@electronicadelsur.com</td>
+                        <td>555-123-4567</td>
+                        <td><span class="badge badge-success">Activo</span></td>
+                        <td>
+                            <button class="action-btn edit-btn" data-id="C-2025-003">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn" data-id="C-2025-003">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>C-2025-004</td>
+                        <td>Informática Avanzada</td>
+                        <td>30567890</td>
+                        <td>info@informaticaavanzada.com</td>
+                        <td>333-444-5555</td>
+                        <td><span class="badge badge-warning">Inactivo</span></td>
+                        <td>
+                            <button class="action-btn edit-btn" data-id="C-2025-004">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn" data-id="C-2025-004">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal para agregar/editar cliente -->
+    <div id="clientModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Agregar Cliente</h3>
+                <button type="button" class="close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="clientForm">
+                    <input type="hidden" id="clientId">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="tipoCliente">Tipo de Cliente:</label>
+                            <select id="tipoCliente" class="form-control" required>
+                                <option value="persona">Persona</option>
+                                <option value="empresa">Empresa</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="documento">Documento / RUC:</label>
+                            <input type="text" id="documento" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nombre">Nombre / Razón Social:</label>
+                            <input type="text" id="nombre" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="apellido">Apellido:</label>
+                            <input type="text" id="apellido" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email:</label>
+                            <input type="email" id="email" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="telefono">Teléfono:</label>
+                            <input type="tel" id="telefono" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="direccion">Dirección:</label>
+                            <input type="text" id="direccion" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="ciudad">Ciudad:</label>
+                            <input type="text" id="ciudad" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="estado">Estado:</label>
+                            <select id="estado" class="form-control" required>
+                                <option value="activo">Activo</option>
+                                <option value="inactivo">Inactivo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="categoria">Categoría:</label>
+                            <select id="categoria" class="form-control">
+                                <option value="regular">Regular</option>
+                                <option value="preferente">Preferente</option>
+                                <option value="mayorista">Mayorista</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelBtn">Cancelar</button>
+                <button type="button" class="btn btn-success" id="saveBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación para eliminar -->
+    <div id="confirmDeleteModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Confirmar Eliminación</h3>
+                <button type="button" class="close">&times;</button>
+            </div>
+            <div class="confirm-dialog">
+                <p>¿Está seguro de que desea eliminar este cliente?</p>
+                <button id="cancelDelete" class="btn btn-secondary">Cancelar</button>
+                <button id="confirmDelete" class="btn btn-primary">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const addClientBtn = document.getElementById('addClientBtn');
+            const clientModal = document.getElementById('clientModal');
+            const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+            const closeButtons = document.querySelectorAll('.close');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const confirmDeleteBtn = document.getElementById('confirmDelete');
+            const cancelDeleteBtn = document.getElementById('cancelDelete');
+            const clientForm = document.getElementById('clientForm');
+            const modalTitle = document.getElementById('modalTitle');
+            
+            let currentClientId = null;
+
+            // Mostrar modal para nuevo cliente
+            addClientBtn.addEventListener('click', function() {
+                modalTitle.textContent = 'Agregar Cliente';
+                clientForm.reset();
+                document.getElementById('clientId').value = '';
+                clientModal.style.display = 'flex';
+            });
+
+            // Cerrar modales
+            closeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    clientModal.style.display = 'none';
+                    confirmDeleteModal.style.display = 'none';
+                });
+            });
+
+            cancelBtn.addEventListener('click', function() {
+                clientModal.style.display = 'none';
+            });
+
+            // Cerrar modales al hacer clic fuera
+            window.addEventListener('click', function(event) {
+                if (event.target === clientModal) {
+                    clientModal.style.display = 'none';
+                }
+                if (event.target === confirmDeleteModal) {
+                    confirmDeleteModal.style.display = 'none';
+                }
+            });
+
+            // Manejar botones de editar y eliminar
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.edit-btn')) {
+                    const btn = e.target.closest('.edit-btn');
+                    const clientId = btn.dataset.id;
+                    editClient(clientId);
+                }
+                
+                if (e.target.closest('.delete-btn')) {
+                    const btn = e.target.closest('.delete-btn');
+                    const clientId = btn.dataset.id;
+                    showDeleteConfirmation(clientId);
+                }
+            });
+
+            // Función para editar cliente
+            function editClient(id) {
+                // Simulamos obtener datos del cliente (normalmente sería una petición AJAX)
+                const row = document.querySelector(`[data-id="${id}"]`).closest('tr');
+                const cells = row.cells;
+                
+                // Llenamos el formulario con los datos existentes
+                document.getElementById('clientId').value = id;
+                
+                // Determinamos si es persona o empresa basado en el nombre
+                const nombreCompleto = cells[1].textContent;
+                const esEmpresa = !nombreCompleto.includes(' ') || 
+                                 nombreCompleto.includes('del ') || 
+                                 nombreCompleto.includes('Avanzada');
+                
+                document.getElementById('tipoCliente').value = esEmpresa ? 'empresa' : 'persona';
+                document.getElementById('documento').value = cells[2].textContent;
+                
+                if (esEmpresa) {
+                    document.getElementById('nombre').value = nombreCompleto;
+                    document.getElementById('apellido').value = '';
+                } else {
+                    // Dividir nombre completo en nombre y apellido para personas
+                    const nombreParts = nombreCompleto.split(' ');
+                    document.getElementById('nombre').value = nombreParts[0];
+                    document.getElementById('apellido').value = nombreParts.slice(1).join(' ');
+                }
+                
+                document.getElementById('email').value = cells[3].textContent;
+                document.getElementById('telefono').value = cells[4].textContent;
+                
+                // Estado
+                const estadoCell = cells[5].querySelector('.badge');
+                document.getElementById('estado').value = 
+                    estadoCell.classList.contains('badge-success') ? 'activo' : 'inactivo';
+                
+                // Valores ficticios para los campos que no están en la tabla
+                document.getElementById('direccion').value = 'Av. Principal 123';
+                document.getElementById('ciudad').value = 'Ciudad Central';
+                document.getElementById('categoria').value = id === 'C-2025-003' ? 'mayorista' : 'regular';
+                
+                modalTitle.textContent = 'Editar Cliente';
+                clientModal.style.display = 'flex';
+            }
+
+            // Función para mostrar confirmación de eliminación
+            function showDeleteConfirmation(id) {
+                currentClientId = id;
+                confirmDeleteModal.style.display = 'flex';
+            }
+
+            // Manejar eliminación de cliente
+            confirmDeleteBtn.addEventListener('click', function() {
+                if (currentClientId) {
+                    const row = document.querySelector(`[data-id="${currentClientId}"]`).closest('tr');
+                    row.remove();
+                    confirmDeleteModal.style.display = 'none';
+                }
+            });
+
+            // Cancelar eliminación
+            cancelDeleteBtn.addEventListener('click', function() {
+                confirmDeleteModal.style.display = 'none';
+            });
+
+            // Guardar cliente (nuevo o editado)
+            saveBtn.addEventListener('click', function() {
+                const id = document.getElementById('clientId').value;
+                const tipoCliente = document.getElementById('tipoCliente').value;
+                const documento = document.getElementById('documento').value;
+                const nombre = document.getElementById('nombre').value;
+                const apellido = document.getElementById('apellido').value;
+                const email = document.getElementById('email').value;
+                const telefono = document.getElementById('telefono').value;
+                const estado = document.getElementById('estado').value;
+                
+                // Crear nombre completo según tipo de cliente
+                const nombreCompleto = tipoCliente === 'empresa' ? nombre : `${nombre} ${apellido}`;
+                
+                if (id) {
+                    // Actualizar cliente existente
+                    const row = document.querySelector(`[data-id="${id}"]`).closest('tr');
+                    const cells = row.cells;
+                    
+                    cells[1].textContent = nombreCompleto;
+                    cells[2].textContent = documento;
+                    cells[3].textContent = email;
+                    cells[4].textContent = telefono;
+                    
+                    // Actualizar estado
+                    const estadoClass = estado === 'activo' ? 'badge-success' : 'badge-warning';
+                    const estadoText = estado === 'activo' ? 'Activo' : 'Inactivo';
+                    cells[5].innerHTML = `<span class="badge ${estadoClass}">${estadoText}</span>`;
+                } else {
+                    // Agregar nuevo cliente
+                    const tbody = document.getElementById('clientesTable');
+                    const rowCount = tbody.rows.length;
+                    const newId = `C-2025-00${rowCount + 1}`;
+                    
+                    const newRow = tbody.insertRow();
+                    
+                    const estadoClass = estado === 'activo' ? 'badge-success' : 'badge-warning';
+                    const estadoText = estado === 'activo' ? 'Activo' : 'Inactivo';
+                    
+                    newRow.innerHTML = `
+                        <td>${newId}</td>
+                        <td>${nombreCompleto}</td>
+                        <td>${documento}</td>
+                        <td>${email}</td>
+                        <td>${telefono}</td>
+                        <td><span class="badge ${estadoClass}">${estadoText}</span></td>
+                        <td>
+                            <button class="action-btn edit-btn" data-id="${newId}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-btn" data-id="${newId}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                }
+                
+                // Cerrar el modal
+                clientModal.style.display = 'none';
+            });
+
+            // Cambiar campos según tipo de cliente
+            document.getElementById('tipoCliente').addEventListener('change', function() {
+                const apellidoGroup = document.getElementById('apellido').closest('.form-group');
+                if (this.value === 'empresa') {
+                    document.querySelector('label[for="nombre"]').textContent = 'Razón Social:';
+                    apellidoGroup.style.display = 'none';
+                } else {
+                    document.querySelector('label[for="nombre"]').textContent = 'Nombre:';
+                    apellidoGroup.style.display = 'block';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
